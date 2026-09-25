@@ -1,0 +1,22 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# n8n local data and exports that may contain credentials/execution data
+.n8n/
+n8n_data/
+executions/
+credentials*.json
+
+# Local editor and operating-system files
+.DS_Store
+.vscode/
+.idea/
+
+# Original, unredacted demo capture (do not publish)
+Screenshot 2026-09-25 at 3.22.50 AM copy.png
+workflow-screenshot.png

@@ -1,0 +1,611 @@
+{
+  "name": "iti_Student Daily Attendance",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Daily Attendance",
+        "formDescription": "please submit it before 4 .",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "placeholder": "Example Student",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "YourID",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Attendance Mode",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Online"
+                  },
+                  {
+                    "option": "Offline"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "098f10c4-e613-4663-b97f-68ce5899f33f",
+      "name": "On form submission1",
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Daily Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Student_ID": "={{ $json.Student_ID }}",
+            "Name": "={{ $json.Name }}",
+            "Time": "={{ $json.Time }}",
+            "Statue": "={{ $json.Status }}",
+            "Attendence mode": "={{ $('On form submission1').item.json['Attendance Mode'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student_ID",
+              "displayName": "Student_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Attendence mode",
+              "displayName": "Attendence mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Statue",
+              "displayName": "Statue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -48
+      ],
+      "id": "46fb3c46-2599-4ba3-abf2-ac47cb0ca72a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GOOGLESHEETSOAUTH2API_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 3,
+              "triggerAtMinute": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        144
+      ],
+      "id": "e8d35631-28fe-4688-9d80-0b50f9a8f250",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const name = $json.Name;\nconst studentId = $json.YourID;\n\n\nconst now = new Date();\n\n\nconst egyptTime = new Intl.DateTimeFormat('en-GB', {\n  timeZone: 'Africa/Cairo',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false,\n}).format(now);\n\n\nconst egyptDate = new Intl.DateTimeFormat('en-CA', {\n  timeZone: 'Africa/Cairo',\n}).format(now);\n\n\nconst [hours, minutes, seconds] = egyptTime.split(':').map(Number);\n\nconst currentSeconds =\n  hours * 3600 +\n  minutes * 60 +\n  seconds;\n\nconst startSeconds = 3 * 3600  ;       \nconst endSeconds = 3* 3600 + 40 * 60; \n\nconst status =\n  currentSeconds >= startSeconds &&\n  currentSeconds <= endSeconds\n    ? 'Present'\n    : 'Absent';\n\nreturn {\n  Date: egyptDate,\n  Student_ID: studentId,\n  Name: name,\n  Time: egyptTime,\n  Status: status,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -144
+      ],
+      "id": "7d96d2e5-9405-46f5-8f3b-ff097af9e7b9",
+      "name": "handle data to google Sheets"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Process today's attendance now.\n\nUse the available tools to retrieve the required attendance and student data, apply the absence policy, update the records, send the required emails, and return the daily attendance summary.",
+        "options": {
+          "systemMessage": "You are an Attendance Compliance Officer for a training institute.\n\nYour responsibility is to process the daily student attendance after the attendance window closes at 9:10 AM.\n\nYou must use the available tools to retrieve real student and attendance data. Never invent, assume, or manually create student information.\n\n## Processing Steps\n\n1. Retrieve today's attendance submissions using the attendance tool.\n2. Retrieve the full active student roster using the roster tool.\n3. Consider only attendance submissions belonging to the current date.\n4. Compare the active student roster against ALL of today's attendance submissions.\n\n5. For each attendance submission, check BOTH:\n   - Student_ID\n   - Status\n\n6. A student is Present ONLY if:\n   - Their Student_ID exists in today's attendance submissions, AND\n   - Their Status is exactly \"Present\".\n\n7. A student is Absent if:\n   - Their Student_ID does not exist in today's submissions, OR\n   - Their Student_ID exists but their Status is not \"Present\".\n\n8. Never assume that the existence of a Student_ID means the student is Present.\n   The Status field must also be checked.\n\n9. Use the Attendance Mode field only to calculate the Online and Offline counts for students who are Present.\n\n10. After determining Present and Absent students, continue with the absence policy for every Absent student.\n11. For each absent student, determine their current absence count from the roster.\n12. Increase the student's absence count by exactly 1.\n13. Apply the absence policy:\n   - 1 or 2 total absences → Warning and keep the student Active.\n   - 3 or more total absences → Dismissal and change the student's status to Inactive.\n14. Update each affected student using the Update Student tool.\n15. Send the required Warning or Dismissal email to each affected student using the Gmail tool.\n16. Do NOT send the daily attendance summary by email.\n17. After all students have been processed, generate the final attendance report as your output.\n\n## Important Rules\n\n- Always use the available tools when student or attendance data is required.\n- Never invent student IDs, names, emails, attendance records, or absence counts.\n- Only students in the active roster are included in the attendance calculation.\n- Do not count a student as Present unless they have a valid attendance submission for today.\n- Process each absent student individually.\n- Increment each absent student's absence count exactly once for the current day.\n- Do not process the same absent student more than once.\n- Do not send duplicate student emails.\n- Do not modify students who are already Inactive.\n- Use the student's existing email from the roster when sending a student email.\n- The attendance window closes at 9:10 AM.\n- The workflow runs at 9:10 AM to process the completed attendance window.\n- Do not manually invent or assume data that can be retrieved from the available tools.\n- Do not send the daily report by email.\n- The daily report will be converted to PDF and sent separately by the workflow after the AI Agent finishes.\n\n## Final Output\n\nReturn ONLY valid JSON.\n\nUse exactly this structure:\n\n{\n  \"date\": \"YYYY-MM-DD\",\n  \"total_active_students\": 0,\n  \"present\": 0,\n  \"absent\": 0,\n  \"online\": 0,\n  \"offline\": 0,\n  \"warnings_sent\": 0,\n  \"dismissals_sent\": 0,\n  \"absent_students\": []\n}\n\nEach absent student object must contain:\n\n{\n  \"student_id\": \"\",\n  \"name\": \"\",\n  \"previous_absence_count\": 0,\n  \"updated_absence_count\": 0,\n  \"status\": \"\",\n  \"action\": \"\"\n}\n\nDo not add Markdown.\nDo not add explanations.\nDo not add text outside the JSON.\n\nOUTPUT RULES\n\n- Return the report as plain text.\n- Do not use Markdown tables.\n- Do not add explanations before or after the report.\n- Do not include tool execution details.\n- Do not include internal reasoning.\n- Do not send the report by email.\n- Make the output clean, consistent, and suitable for direct conversion to HTML and PDF."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        64
+      ],
+      "id": "1260a01f-b017-43e8-bbd4-ad287a70386f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Daily Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        432
+      ],
+      "id": "ed7b98e1-210a-4b37-b0db-d0c57f28efc0",
+      "name": "get today's Attendance",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GOOGLESHEETSOAUTH2API_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Full Student Roster",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        544
+      ],
+      "id": "f21a90c1-830c-420b-b0e2-3f83544f2dc3",
+      "name": "Get Student Roster",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GOOGLESHEETSOAUTH2API_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Full Student Roster",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student_ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Student_ID__using_to_match_', `The Student_ID of the absent student. Use this ID to find and update the existing student in the roster.`, 'string') }}",
+            "Absent_count": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Absent_count', `The student's new total absence count after adding today's absence. Increase the current absence count by exactly 1.`, 'string') }}",
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', `The student's new status after today's absence. Use \"Active\" for 1 or 2 total absences. Use \"Inactive\" for 3 or more total absences.`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Student_ID"
+          ],
+          "schema": [
+            {
+              "id": "Student_ID",
+              "displayName": "Student_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Absent_count",
+              "displayName": "Absent_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        448
+      ],
+      "id": "0dcd6796-9bec-4c17-9779-0e80bda57ecf",
+      "name": "Update Student",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GOOGLESHEETSOAUTH2API_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Send attendance-related emails.\n\nUse this tool to send:\n- Warning emails to students with 1 or 2 total absences.\n- Dismissal emails to students with 3 or more total absences.\n- The daily attendance summary report to staff.\n\nUse the student's email from the Student Roster.\nDo not send duplicate emails.",
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', `The email address of the recipient. For student emails, use the email from the Student Roster. For the daily staff report, use the configured staff email address.`, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', `The email subject. Clearly indicate whether the email is an attendance warning, dismissal notice, or daily attendance report.`, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `The complete email body. Write a clear and professional message appropriate for the recipient and the attendance situation.`, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        400
+      ],
+      "id": "7e3ea41d-1747-442d-972e-10fa7575a23f",
+      "name": "Send a message in Gmail",
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GMAILOAUTH2_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html_content": "={{ $json.html }}",
+        "css_content": "=* {   box-sizing: border-box; }  body {   margin: 0;   padding: 40px;   font-family: Arial, Helvetica, sans-serif;   background: #ffffff;   color: #1f2937; }  .header {   text-align: center;   margin-bottom: 32px;   border-bottom: 2px solid #e5e7eb;   padding-bottom: 20px; }  .header h1 {   margin: 0 0 8px;   font-size: 30px;   color: #111827; }  .date {   font-size: 14px;   color: #6b7280; }  .summary {   display: grid;   grid-template-columns: repeat(2, 1fr);   gap: 16px;   margin-bottom: 32px; }  .card {   border: 1px solid #e5e7eb;   border-radius: 12px;   padding: 20px;   text-align: center;   background: #f9fafb; }  .card h3 {   margin: 0 0 10px;   font-size: 14px;   color: #6b7280;   font-weight: 600; }  .number {   font-size: 30px;   font-weight: 700;   color: #111827; }  .section {   margin-top: 30px; }  .section h2 {   font-size: 20px;   margin-bottom: 15px;   color: #111827; }  .report {   border: 1px solid #e5e7eb;   border-radius: 12px;   padding: 22px;   background: #ffffff;   line-height: 1.8;   font-size: 14px; }  .report strong {   color: #111827; }  .footer {   margin-top: 40px;   padding-top: 15px;   border-top: 1px solid #e5e7eb;   text-align: center;   font-size: 11px;   color: #9ca3af; }  @media print {   body {     padding: 25px;   }    .card {     break-inside: avoid;   }    .report {     break-inside: avoid;   } } {{ $json.css }}"
+      },
+      "type": "n8n-nodes-htmlcsstopdf.htmlcsstopdf",
+      "typeVersion": 1,
+      "position": [
+        784,
+        112
+      ],
+      "id": "3dabcf01-899c-4f61-9347-de1933340b39",
+      "name": "Convert HTML to PDF",
+      "credentials": {
+        "htmlcsstopdfApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_HTMLCSSTOPDFAPI_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-3-flash-preview",
+        "options": {
+          "maxTokens": 4096
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        32,
+        432
+      ],
+      "id": "ee2ddeec-5fa9-4adb-b053-68748a979f38",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_OPENROUTERAPI_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get AI Agent output\nconst raw = $json.output;\n\n// Parse JSON returned by the AI Agent\nlet report;\n\ntry {\n  report = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (error) {\n  throw new Error('AI Agent output is not valid JSON');\n}\n\nconst {\n  date,\n  total_active_students,\n  present,\n  absent,\n  online,\n  offline,\n  warnings_sent,\n  dismissals_sent,\n  absent_students = []\n} = report;\n\n// Escape HTML to prevent malformed output\nfunction escapeHTML(value) {\n  return String(value ?? '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;')\n    .replace(/'/g, '&#039;');\n}\n\n// Generate absent students rows\nconst absentRows = absent_students.length\n  ? absent_students.map(student => `\n      <tr>\n        <td>${escapeHTML(student.student_id)}</td>\n        <td>${escapeHTML(student.name)}</td>\n        <td>${escapeHTML(student.previous_absence_count)}</td>\n        <td>${escapeHTML(student.updated_absence_count)}</td>\n        <td>${escapeHTML(student.status)}</td>\n        <td>${escapeHTML(student.action)}</td>\n      </tr>\n    `).join('')\n  : `\n      <tr>\n        <td colspan=\"6\" class=\"no-data\">\n          No students were absent today.\n        </td>\n      </tr>\n    `;\n\n// HTML\nconst html = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Daily Attendance Report</title>\n</head>\n\n<body>\n\n  <div class=\"header\">\n    <h1>Daily Attendance Report</h1>\n    <p>Date: ${escapeHTML(date)}</p>\n  </div>\n\n  <div class=\"summary-grid\">\n\n    <div class=\"card\">\n      <span class=\"label\">Total Students</span>\n      <span class=\"value\">${escapeHTML(total_active_students)}</span>\n    </div>\n\n    <div class=\"card present\">\n      <span class=\"label\">Present</span>\n      <span class=\"value\">${escapeHTML(present)}</span>\n    </div>\n\n    <div class=\"card absent\">\n      <span class=\"label\">Absent</span>\n      <span class=\"value\">${escapeHTML(absent)}</span>\n    </div>\n\n    <div class=\"card\">\n      <span class=\"label\">Online</span>\n      <span class=\"value\">${escapeHTML(online)}</span>\n    </div>\n\n    <div class=\"card\">\n      <span class=\"label\">Offline</span>\n      <span class=\"value\">${escapeHTML(offline)}</span>\n    </div>\n\n    <div class=\"card warning\">\n      <span class=\"label\">Warnings Sent</span>\n      <span class=\"value\">${escapeHTML(warnings_sent)}</span>\n    </div>\n\n    <div class=\"card dismissal\">\n      <span class=\"label\">Dismissals</span>\n      <span class=\"value\">${escapeHTML(dismissals_sent)}</span>\n    </div>\n\n  </div>\n\n  <div class=\"section\">\n    <h2>Absent Students</h2>\n\n    <table>\n      <thead>\n        <tr>\n          <th>Student ID</th>\n          <th>Name</th>\n          <th>Previous Absences</th>\n          <th>Updated Absences</th>\n          <th>Status</th>\n          <th>Action</th>\n        </tr>\n      </thead>\n\n      <tbody>\n        ${absentRows}\n      </tbody>\n    </table>\n\n  </div>\n\n  <div class=\"footer\">\n    <p>Automatically generated by the Student Attendance System</p>\n  </div>\n\n</body>\n</html>\n`;\n\n// CSS\nconst css = `\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  padding: 40px;\n  font-family: Arial, Helvetica, sans-serif;\n  color: #1f2937;\n  background: #ffffff;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 35px;\n  padding-bottom: 20px;\n  border-bottom: 2px solid #e5e7eb;\n}\n\n.header h1 {\n  margin: 0 0 8px;\n  font-size: 30px;\n  font-weight: 700;\n  color: #111827;\n}\n\n.header p {\n  margin: 0;\n  font-size: 14px;\n  color: #6b7280;\n}\n\n.summary-grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 15px;\n  margin-bottom: 35px;\n}\n\n.card {\n  border: 1px solid #e5e7eb;\n  border-radius: 12px;\n  padding: 20px;\n  text-align: center;\n  background: #f9fafb;\n}\n\n.card .label {\n  display: block;\n  font-size: 13px;\n  color: #6b7280;\n  margin-bottom: 8px;\n}\n\n.card .value {\n  display: block;\n  font-size: 28px;\n  font-weight: 700;\n  color: #111827;\n}\n\n.card.present {\n  border-left: 5px solid #16a34a;\n}\n\n.card.absent {\n  border-left: 5px solid #dc2626;\n}\n\n.card.warning {\n  border-left: 5px solid #f59e0b;\n}\n\n.card.dismissal {\n  border-left: 5px solid #7f1d1d;\n}\n\n.section {\n  margin-top: 30px;\n}\n\n.section h2 {\n  margin-bottom: 15px;\n  font-size: 20px;\n  color: #111827;\n}\n\ntable {\n  width: 100%;\n  border-collapse: collapse;\n  font-size: 13px;\n}\n\nthead {\n  background: #f3f4f6;\n}\n\nth {\n  padding: 12px;\n  text-align: left;\n  border-bottom: 2px solid #d1d5db;\n  font-weight: 700;\n}\n\ntd {\n  padding: 12px;\n  border-bottom: 1px solid #e5e7eb;\n}\n\ntr {\n  page-break-inside: avoid;\n}\n\n.no-data {\n  text-align: center;\n  padding: 25px;\n  color: #16a34a;\n  font-weight: 600;\n}\n\n.footer {\n  margin-top: 40px;\n  padding-top: 15px;\n  border-top: 1px solid #e5e7eb;\n  text-align: center;\n  color: #9ca3af;\n  font-size: 11px;\n}\n\n@media print {\n  body {\n    padding: 25px;\n  }\n\n  .summary-grid {\n    page-break-inside: avoid;\n  }\n\n  .section {\n    page-break-inside: auto;\n  }\n}\n`;\n\nreturn [\n  {\n    json: {\n      html,\n      css,\n      report,\n      fileName: `Daily_Attendance_Report_${date}.pdf`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        112
+      ],
+      "id": "898c4808-7dd8-4623-8738-f228ae5dc85a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-staff-email@example.com",
+        "subject": "=Daily Attendance Report ",
+        "message": "=<!DOCTYPE html>\n\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n\n<body style=\"margin:0; padding:0; background:#f4f6f8; font-family:Arial,Helvetica,sans-serif;\">\n\n  <div style=\"max-width:600px; margin:40px auto; background:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb;\">\n\n<!-- Header -->\n<div style=\"padding:28px 32px; background:#111827; color:#ffffff;\">\n  <h1 style=\"margin:0; font-size:24px;\">\n    Daily Attendance Report\n  </h1>\n\n  <p style=\"margin:8px 0 0; font-size:14px; color:#d1d5db;\">\n    Attendance processing completed successfully\n  </p>\n</div>\n\n<!-- Body -->\n<div style=\"padding:32px;\">\n\n  <p style=\"font-size:15px; line-height:1.7; color:#374151;\">\n    Hello,\n  </p>\n\n  <p style=\"font-size:15px; line-height:1.7; color:#374151;\">\n    The daily attendance process has been completed successfully.\n  </p>\n\n  <p style=\"font-size:15px; line-height:1.7; color:#374151;\">\n    The attendance window was closed at <strong>9:10 AM</strong>.\n    The system automatically processed today's attendance, identified\n    absences, updated student records, and applied the attendance policy\n    where required.\n  </p>\n\n  <!-- Report Button -->\n  <div style=\"text-align:center; margin:30px 0;\">\n\n    <a href=\"{{ $json.pdf_url }}\"\n       style=\"\n         display:inline-block;\n         background:#111827;\n         color:#ffffff;\n         text-decoration:none;\n         padding:14px 28px;\n         border-radius:8px;\n         font-size:15px;\n         font-weight:bold;\n       \">\n      📄 View Daily Attendance Report\n    </a>\n\n  </div>\n\n  <!-- Included Information -->\n  <div style=\"\n    background:#f9fafb;\n    border:1px solid #e5e7eb;\n    border-radius:8px;\n    padding:20px;\n    margin-top:20px;\n  \">\n\n    <p style=\"margin:0 0 12px; font-size:15px; font-weight:bold; color:#111827;\">\n      Report includes:\n    </p>\n\n    <p style=\"margin:8px 0; font-size:14px; color:#4b5563;\">\n      • Total active students\n    </p>\n\n    <p style=\"margin:8px 0; font-size:14px; color:#4b5563;\">\n      • Present and absent students\n    </p>\n\n    <p style=\"margin:8px 0; font-size:14px; color:#4b5563;\">\n      • Online / Offline attendance\n    </p>\n\n    <p style=\"margin:8px 0; font-size:14px; color:#4b5563;\">\n      • Warnings and dismissals\n    </p>\n\n    <p style=\"margin:8px 0; font-size:14px; color:#4b5563;\">\n      • Updated absence counts and student statuses\n    </p>\n\n  </div>\n\n  <p style=\"margin-top:30px; font-size:14px; line-height:1.6; color:#6b7280;\">\n    This report was generated automatically by the Attendance Automation System.\n  </p>\n\n  <p style=\"font-size:14px; color:#374151;\">\n    Best regards,<br>\n    <strong>Attendance Automation System</strong>\n  </p>\n\n</div>\n\n<!-- Footer -->\n<div style=\"\n  padding:18px 32px;\n  background:#f9fafb;\n  border-top:1px solid #e5e7eb;\n  text-align:center;\n  font-size:11px;\n  color:#9ca3af;\n\">\n  Automated Attendance Management\n</div>\n\n  </div>\n\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        112
+      ],
+      "id": "21f3bc1d-7a5c-48a6-a0a6-7575cedb6f18",
+      "name": "Send a message",
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "YOUR_GMAILOAUTH2_CREDENTIAL"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "handle data to google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "handle data to google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get today's Attendance": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Student Roster": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Student": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "REPLACE_WITH_YOUR_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
