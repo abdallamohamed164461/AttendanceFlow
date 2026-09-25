@@ -1,4 +1,4 @@
-# iti_Student Daily Attendance (n8n)
+# Student Daily Attendance (n8n)
 
 An n8n automation that runs a training institute's daily attendance end-to-end: students check in via a form, and every morning an AI agent closes the attendance window, applies the absence policy, updates records, emails warnings/dismissals, and sends a PDF daily report.
 
